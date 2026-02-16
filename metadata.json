@@ -1,0 +1,5 @@
+{
+  "name": "MacPulse AI - System Analyzer",
+  "description": "An intelligent Mac disk scanning and optimization utility. It helps visualize large files, identify junk, manage startup items, and explain background tasks using Gemini AI.",
+  "requestFramePermissions": []
+}
