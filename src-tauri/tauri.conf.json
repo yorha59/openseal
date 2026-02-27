@@ -1,0 +1,61 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devPath": "http://localhost:3000",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "OpenSeal",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "DeveloperTool",
+      "identifier": "com.openseal.app",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "targets": "all",
+      "shortDescription": "Intelligent Mac disk scanning and optimization",
+      "longDescription": "OpenSeal is a professional disk analysis tool powered by Rust, with AI-driven optimization recommendations.",
+      "copyright": "Copyright © 2026",
+      "resources": [],
+      "externalBin": [],
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "OpenSeal",
+        "width": 1280,
+        "height": 850,
+        "minWidth": 1000,
+        "minHeight": 700,
+        "decorations": true,
+        "transparent": false
+      }
+    ]
+  }
+}

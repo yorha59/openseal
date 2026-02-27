@@ -1,15 +1,27 @@
-
 {
-  "name": "macpulse-ai",
+  "name": "openseal",
   "version": "1.0.0",
-  "description": "Intelligent Mac disk scanning and optimization utility.",
-  "main": "electron-main.js",
+  "description": "Intelligent Mac disk scanning and optimization",
   "author": "MacPulse Team",
   "scripts": {
-    "start": "electron .",
-    "build": "echo 'No web build step required for ESM-based app' && exit 0"
+    "dev": "vite",
+    "build": "vite build",
+    "tauri:dev": "npx tauri dev",
+    "tauri:build": "npx tauri build"
   },
   "devDependencies": {
-    "electron": "^31.0.0"
-  }
+    "@tauri-apps/cli": "1.5",
+    "@vitejs/plugin-react": "^5.1.4",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "@google/genai": "^1.43.0",
+    "@tauri-apps/api": "1.5",
+    "lucide-react": "^0.575.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^3.7.0"
+  },
+  "type": "module"
 }
