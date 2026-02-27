@@ -63,7 +63,7 @@ const Dashboard: React.FC<DashboardProps> = ({ stats }) => {
             </ResponsiveContainer>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-2xl font-bold">{stats.percent || Math.round(stats.used / stats.total * 100)}%</div>
+                <div className="text-2xl font-bold">{stats.total > 0 ? (stats.percent || Math.round(stats.used / stats.total * 100)) : 0}%</div>
                 <div className="text-xs text-gray-400">used</div>
               </div>
             </div>
