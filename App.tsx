@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   LayoutDashboard, Trash2, FileSearch, Zap, Activity, Settings, 
-  Search, ShieldCheck, ChevronRight, HardDrive
+  Search, ShieldCheck, ChevronRight, HardDrive, Copy
 } from 'lucide-react';
 import { ViewType } from './types';
 import Dashboard from './components/Dashboard';
@@ -10,6 +10,7 @@ import Cleaner from './components/Cleaner';
 import LargeFiles from './components/LargeFiles';
 import StartupItems from './components/StartupItems';
 import ActivityMonitor from './components/ActivityMonitor';
+import Duplicates from './components/Duplicates';
 
 // Tauri invoke setup
 let tauriInvoke: any = null;
@@ -71,6 +72,7 @@ const App: React.FC = () => {
       case ViewType.DASHBOARD: return <Dashboard stats={diskUsage} />;
       case ViewType.CLEANER: return <Cleaner />;
       case ViewType.LARGE_FILES: return <LargeFiles />;
+      case ViewType.DUPLICATES: return <Duplicates />;
       case ViewType.STARTUP: return <StartupItems />;
       case ViewType.ACTIVITY: return <ActivityMonitor />;
       default: return <Dashboard stats={diskUsage} />;
@@ -81,6 +83,7 @@ const App: React.FC = () => {
     { id: ViewType.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
     { id: ViewType.CLEANER, label: 'Junk Cleaner', icon: Trash2 },
     { id: ViewType.LARGE_FILES, label: 'Large Files', icon: FileSearch },
+    { id: ViewType.DUPLICATES, label: 'Duplicates', icon: Copy },
     { id: ViewType.STARTUP, label: 'Startup Items', icon: Zap },
     { id: ViewType.ACTIVITY, label: 'Background', icon: Activity },
   ];

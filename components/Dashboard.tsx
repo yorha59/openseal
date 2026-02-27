@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Sparkles, ArrowRight, Zap, RefreshCcw, Trash2 } from 'lucide-react';
+import { generateSystemReport, analyzeSystemHealth } from '../services/geminiService';
 
 interface DashboardProps {
   stats: { used: number; total: number; free: number; percent?: number; loading?: boolean };
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ stats }) => {
-  const [aiAdvice, setAiAdvice] = useState<string>('');
+  const [healthTips, setHealthTips] = useState<string[]>([]);
 
   const data = [
     { name: 'Used', value: stats.used || 1, color: '#3b82f6' },
@@ -16,14 +17,18 @@ const Dashboard: React.FC<DashboardProps> = ({ stats }) => {
   ];
 
   useEffect(() => {
-    const percent = stats.total > 0 ? (stats.used / stats.total * 100) : 0;
-    if (percent > 90) {
-      setAiAdvice('⚠️ Disk usage is critically high! Consider removing large files or clearing cache to free up space.');
-    } else if (percent > 70) {
-      setAiAdvice('Disk usage is moderate. Check Large Files tab to find space-saving opportunities.');
-    } else {
-      setAiAdvice('Disk health looks good. Keep usage under 80% for optimal performance.');
-    }
+    const analyze = async () => {
+      const report = await generateSystemReport();
+      // Use real data if available, otherwise use props
+      if (report.disk.total_gb > 0) {
+        setHealthTips(analyzeSystemHealth(report));
+      } else {
+        setHealthTips(analyzeSystemHealth({
+          disk: { used_gb: stats.used, total_gb: stats.total, percent: stats.percent || 0 },
+        }));
+      }
+    };
+    if (!stats.loading) analyze();
   }, [stats]);
 
   if (stats.loading) {
@@ -86,7 +91,13 @@ const Dashboard: React.FC<DashboardProps> = ({ stats }) => {
           <Sparkles size={20} />
           <h3 className="font-bold">System Health</h3>
         </div>
-        <p className="text-sm text-gray-700 leading-relaxed flex-1">{aiAdvice}</p>
+        <p className="text-sm text-gray-700 leading-relaxed flex-1">
+          {healthTips.length > 0 ? (
+            <ul className="space-y-2">
+              {healthTips.map((tip, i) => <li key={i}>{tip}</li>)}
+            </ul>
+          ) : 'Analyzing system...'}
+        </p>
         <button className="mt-6 w-full py-3 bg-blue-500 text-white rounded-2xl font-semibold flex items-center justify-center space-x-2 hover:bg-blue-600 transition-colors shadow-lg shadow-blue-200">
           <span>Start Smart Scan</span>
           <ArrowRight size={18} />
