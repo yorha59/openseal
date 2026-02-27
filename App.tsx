@@ -1,16 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  LayoutDashboard, 
-  Trash2, 
-  FileSearch, 
-  Zap, 
-  Activity, 
-  Settings, 
-  Search, 
-  ShieldCheck, 
-  ChevronRight,
-  HardDrive
+  LayoutDashboard, Trash2, FileSearch, Zap, Activity, Settings, 
+  Search, ShieldCheck, ChevronRight, HardDrive
 } from 'lucide-react';
 import { ViewType } from './types';
 import Dashboard from './components/Dashboard';
@@ -19,9 +11,60 @@ import LargeFiles from './components/LargeFiles';
 import StartupItems from './components/StartupItems';
 import ActivityMonitor from './components/ActivityMonitor';
 
+// Tauri invoke setup
+let tauriInvoke: any = null;
+try {
+  if ((window as any).__TAURI__) {
+    import('@tauri-apps/api/tauri').then(mod => {
+      tauriInvoke = mod.invoke;
+    });
+  }
+} catch (e) {
+  console.log("Not running in Tauri environment.");
+}
+
+export { tauriInvoke };
+
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState<ViewType>(ViewType.DASHBOARD);
-  const [diskUsage, setDiskUsage] = useState({ used: 75.4, total: 512, free: 436.6 });
+  const [diskUsage, setDiskUsage] = useState({ used: 0, total: 0, free: 0, percent: 0, loading: true });
+
+  useEffect(() => {
+    const fetchDiskUsage = async () => {
+      if (tauriInvoke) {
+        try {
+          const data = await tauriInvoke('get_disk_usage');
+          setDiskUsage({
+            used: Math.round(data.used_gb * 10) / 10,
+            total: Math.round(data.total_gb * 10) / 10,
+            free: Math.round(data.free_gb * 10) / 10,
+            percent: Math.round(data.usage_percent * 10) / 10,
+            loading: false,
+          });
+        } catch (e) {
+          console.error("Failed to get disk usage:", e);
+          setDiskUsage(prev => ({ ...prev, loading: false }));
+        }
+      } else {
+        // Browser fallback: use navigator.storage
+        try {
+          const est = await navigator.storage.estimate();
+          const totalGb = (est.quota || 0) / 1e9;
+          const usedGb = (est.usage || 0) / 1e9;
+          setDiskUsage({
+            used: Math.round(usedGb * 10) / 10,
+            total: Math.round(totalGb * 10) / 10,
+            free: Math.round((totalGb - usedGb) * 10) / 10,
+            percent: totalGb > 0 ? Math.round(usedGb / totalGb * 1000) / 10 : 0,
+            loading: false,
+          });
+        } catch {
+          setDiskUsage({ used: 0, total: 0, free: 0, percent: 0, loading: false });
+        }
+      }
+    };
+    fetchDiskUsage();
+  }, []);
 
   const renderView = () => {
     switch (activeView) {
@@ -42,15 +85,16 @@ const App: React.FC = () => {
     { id: ViewType.ACTIVITY, label: 'Background', icon: Activity },
   ];
 
+  const isTauri = !!(window as any).__TAURI__;
+
   return (
     <div className="flex h-screen w-full bg-[#f5f5f7] text-[#1d1d1f]">
-      {/* Sidebar */}
       <aside className="w-64 glass flex flex-col border-r border-gray-200">
         <div className="p-6 flex items-center space-x-3">
           <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
             <HardDrive className="text-white" size={24} />
           </div>
-          <h1 className="text-xl font-bold tracking-tight">MacPulse <span className="text-blue-500">AI</span></h1>
+          <h1 className="text-xl font-bold tracking-tight">OpenSeal</h1>
         </div>
 
         <nav className="flex-1 px-3 mt-4">
@@ -75,31 +119,30 @@ const App: React.FC = () => {
           <div className="bg-gray-100 rounded-lg p-3">
             <div className="flex items-center space-x-2 text-xs text-gray-400 mb-1">
               <ShieldCheck size={14} />
-              <span>System Status: Healthy</span>
+              <span>{isTauri ? '🟢 Native Mode' : '🟡 Browser Mode'}</span>
             </div>
             <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-green-500 w-[95%]"></div>
+              <div className={`h-full ${diskUsage.percent > 90 ? 'bg-red-500' : diskUsage.percent > 70 ? 'bg-amber-500' : 'bg-green-500'}`} 
+                   style={{ width: `${Math.min(diskUsage.percent, 100)}%` }}></div>
             </div>
+            {!diskUsage.loading && (
+              <div className="text-[10px] text-gray-400 mt-1">
+                {diskUsage.used} GB / {diskUsage.total} GB ({diskUsage.percent}%)
+              </div>
+            )}
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative p-8">
         <header className="flex items-center justify-between mb-8 sticky top-0 bg-[#f5f5f7]/80 backdrop-blur-sm py-2 z-10">
           <div>
             <h2 className="text-3xl font-bold">{navItems.find(i => i.id === activeView)?.label}</h2>
-            <p className="text-gray-500 text-sm mt-1 italic">MacPulse AI is scanning your system in real-time...</p>
+            <p className="text-gray-500 text-sm mt-1 italic">
+              {isTauri ? 'Powered by Rust + Surf scanning engine' : 'Running in browser preview mode'}
+            </p>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="pl-10 pr-4 py-2 bg-white rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all w-64 shadow-sm"
-              />
-            </div>
             <button className="p-2 bg-white rounded-full border border-gray-200 hover:bg-gray-50 transition-colors shadow-sm">
               <Settings size={20} />
             </button>
